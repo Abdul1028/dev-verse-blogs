@@ -1,0 +1,126 @@
+---
+title: "Mastering On-Demand ISR in Next.js"
+description: "Learn how to implement and benefit from On-Demand Incremental Static Regeneration (ISR) in Next.js to keep your static pages fresh and fast."
+date: "2025-05-17"
+author: "Your Name"
+tags: ["nextjs", "isr", "webdev", "static-sites", "on-demand"]
+---
+
+# Mastering On-Demand ISR in Next.js
+
+Next.js revolutionized how we build fast, SEO-friendly web apps with **Incremental Static Regeneration (ISR)**. With the introduction of **On-Demand ISR**, we now have even finer control over when pages are regenerated — enabling real-time updates **without full redeployments**.
+
+In this post, we’ll dive into how On-Demand ISR works and how you can implement it in your Next.js app.
+
+## 🧠 What Is ISR in Next.js?
+
+**Incremental Static Regeneration (ISR)** allows you to update static pages **after deployment**. With ISR, you don't need to rebuild your entire app just to reflect changes in a single page.
+
+There are two flavors:
+
+- **Time-based ISR**: Uses `revalidate` time in `getStaticProps`
+- **On-Demand ISR**: Pages are rebuilt on command (API call)
+
+## ⚙️ Time-Based vs On-Demand ISR
+
+| Feature             | Time-based ISR         | On-Demand ISR              |
+|---------------------|------------------------|----------------------------|
+| Trigger             | Timer (e.g., every 10s) | Manual via API call        |
+| Best for            | Frequent updates        | Infrequent, important updates |
+| Setup complexity    | Low                     | Medium                     |
+| Flexibility         | Less                    | More                       |
+
+## 🚀 Use Case for On-Demand ISR
+
+Imagine you have a blog or CMS. When an admin updates a post, you want that post’s static page to be regenerated **immediately** — not after a timeout.
+
+This is where **On-Demand ISR** shines.
+
+## 🛠️ Setting Up On-Demand ISR in Next.js
+
+### 1. Setup `getStaticProps` with `revalidate: false`
+
+\`\`\`js
+// pages/blog/[slug].tsx
+
+export async function getStaticProps({ params }) {
+  const post = await getPostBySlug(params.slug);
+
+  return {
+    props: { post },
+    revalidate: false, // or omit it
+  };
+}
+\`\`\`
+
+### 2. Create the On-Demand ISR API Route
+
+\`\`\`ts
+// pages/api/revalidate.ts
+
+export default async function handler(req, res) {
+  const secret = req.query.secret;
+  if (secret !== process.env.MY_SECRET_TOKEN) {
+    return res.status(401).json({ message: 'Invalid token' });
+  }
+
+  const slug = req.body.slug;
+
+  try {
+    await res.revalidate(`/blog/${slug}`);
+    return res.json({ revalidated: true });
+  } catch (err) {
+    return res.status(500).send('Error revalidating');
+  }
+}
+\`\`\`
+
+### 3. Trigger the Revalidation
+
+\`\`\`ts
+await fetch('/api/revalidate?secret=MY_SECRET_TOKEN', {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify({ slug: 'your-post-slug' })
+});
+\`\`\`
+
+## 🔐 Secure Your Revalidation
+
+To prevent abuse, always use a **secret token** in your revalidation endpoint and store it in `.env`:
+
+\`\`\`env
+MY_SECRET_TOKEN=supersecret
+\`\`\`
+
+## ✅ Benefits of On-Demand ISR
+
+- **Real-time updates** without full rebuilds
+- **Better performance** with static pages
+- **More control** over when updates happen
+- Works well with headless CMSs like Sanity, Contentful, Strapi, etc.
+
+## 🧪 Pro Tips
+
+- Log the `revalidated` response for debugging
+- Use webhooks in your CMS to trigger the `/revalidate` endpoint
+- You can revalidate multiple pages in a single call if needed
+
+## 📦 Bonus: Revalidate Multiple Routes
+
+\`\`\`ts
+const slugs = req.body.slugs || [];
+
+await Promise.all(slugs.map((slug) => res.revalidate(`/blog/${slug}`)));
+\`\`\`
+
+## 🧭 Conclusion
+
+On-Demand ISR gives you the power of static generation with the flexibility of dynamic updates. It's perfect for content-heavy apps that need to reflect updates immediately without a full rebuild.
+
+Next.js continues to push the boundaries of what’s possible with Jamstack and serverless.
+
+## 📚 Further Reading
+
+- [Next.js ISR Docs](https://nextjs.org/docs/pages/building-your-application/data-fetching/incremental-static-regeneration)
+- [Vercel Blog on ISR](https://vercel.com/blog/incremental-static-regeneration)
