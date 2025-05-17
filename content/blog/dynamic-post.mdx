@@ -6,7 +6,6 @@ summary: 'summary of dynamic post'
 slug: 'dynamic-post'
 ---
 
-
 # Mastering On-Demand ISR in Next.js
 
 Next.js revolutionized how we build fast, SEO-friendly web apps with **Incremental Static Regeneration (ISR)**. With the introduction of **On-Demand ISR**, we now have even finer control over when pages are regenerated — enabling real-time updates **without full redeployments**.
@@ -39,52 +38,6 @@ This is where **On-Demand ISR** shines.
 
 ## 🛠️ Setting Up On-Demand ISR in Next.js
 
-### 1. Setup `getStaticProps` with `revalidate: false`
-
-\`\`\`js
-// pages/blog/[slug].tsx
-
-export async function getStaticProps({ params }) {
-  const post = await getPostBySlug(params.slug);
-
-  return {
-    props: { post },
-    revalidate: false, // or omit it
-  };
-}
-\`\`\`
-
-### 2. Create the On-Demand ISR API Route
-
-\`\`\`ts
-// pages/api/revalidate.ts
-
-export default async function handler(req, res) {
-  const secret = req.query.secret;
-  if (secret !== process.env.MY_SECRET_TOKEN) {
-    return res.status(401).json({ message: 'Invalid token' });
-  }
-
-  const slug = req.body.slug;
-
-  try {
-    await res.revalidate(`/blog/${slug}`);
-    return res.json({ revalidated: true });
-  } catch (err) {
-    return res.status(500).send('Error revalidating');
-  }
-}
-\`\`\`
-
-### 3. Trigger the Revalidation
-
-\`\`\`ts
-await fetch('/api/revalidate?secret=MY_SECRET_TOKEN', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ slug: 'your-post-slug' })
-});
-\`\`\`
 
 ## 🔐 Secure Your Revalidation
 
