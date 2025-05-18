@@ -1,0 +1,146 @@
+Sure! Here's an `.mdx` file for a blog post on **On-Demand ISR using Next.js with GitHub Webhooks**:
+
+````
+---
+title: "On-Demand ISR with Next.js and GitHub Webhooks"
+summary: "Learn how to implement On-Demand Incremental Static Regeneration in Next.js using GitHub Webhooks for real-time content updates."
+date: "2025-05-18"
+author: "Your Name"
+slug: "on-demand"
+imageUrl: "https://opengraph.githubassets.com/9624bd6444343e0018e834121a7513bdaeb58ca5a42cfc6cb6dbdbc76a11b49e/vercel/on-demand-isr" 
+tags:
+  - "NextJS"
+  - "Webhooks"
+  - "Backend"
+  - "Github"
+---
+
+import Image from 'next/image'
+
+# 🚀 On-Demand ISR with Next.js and GitHub Webhooks
+
+Next.js introduced **Incremental Static Regeneration (ISR)** to allow pages to be statically generated at runtime. With **On-Demand ISR**, you get even finer control — you can revalidate a page programmatically _on demand_ rather than waiting for a revalidation time interval.
+
+In this post, we’ll walk through setting up **On-Demand ISR with GitHub Webhooks**, so that your site updates automatically whenever content is pushed to a GitHub repository.
+
+---
+
+## 🧠 What is On-Demand ISR?
+
+Normally in ISR, you define a `revalidate` time in `getStaticProps`:
+
+```ts
+export async function getStaticProps() {
+  const data = await fetchData()
+  return {
+    props: { data },
+    revalidate: 60, // Rebuild every 60 seconds
+  }
+}
+
+````
+
+With **On-Demand ISR**, you skip the timer and instead hit an API route manually to trigger regeneration:
+
+```
+await res.revalidate('/my-page')
+
+```
+
+This is especially useful for CMS-driven content or GitHub-based markdown blogs.
+
+***
+
+## 🛠️ Setup: GitHub Webhook + Next.js API Route
+
+### 1. Create the Revalidation API Route
+
+Create a file at `pages/api/revalidate.ts`:
+
+```
+// pages/api/revalidate.ts
+import type { NextApiRequest, NextApiResponse } from 'next'
+
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+  const secret = process.env.REVALIDATE_SECRET
+
+  if (req.query.secret !== secret) {
+    return res.status(401).json({ message: 'Invalid token' })
+  }
+
+  try {
+    await res.revalidate('/blog')
+    return res.json({ revalidated: true })
+  } catch (err) {
+    return res.status(500).json({ message: 'Error revalidating' })
+  }
+}
+
+```
+
+> 💡 Note: Set `REVALIDATE_SECRET` in your `.env.local` file and on GitHub.
+
+***
+
+### 2. Update `.env.local`
+
+```
+REVALIDATE_SECRET=my_super_secret_token
+
+```
+
+***
+
+### 3. Set Up GitHub Webhook
+
+1. Go to your GitHub repo > **Settings** > **Webhooks**.
+2. Click **Add webhook**.
+3. Set the **Payload URL** to your deployed API route (e.g., [`https://yoursite.com/api/revalidate?secret=my_super_secret_token`).](https://yoursite.com/api/revalidate?secret=my_super_secret_token\).)
+4. Set the **Content type** to `application/json`.
+5. Choose events like `push` or `content change`.
+6. Save the webhook.
+
+***
+
+## ✅ Testing the Setup
+
+Push a change to your GitHub repo (e.g., edit a blog post). GitHub should:
+
+1. Hit your webhook.
+2. Trigger the API route.
+3. Regenerate the page `/blog`.
+
+You can also manually test via:
+
+```
+curl -X GET "https://yoursite.com/api/revalidate?secret=my_super_secret_token"
+
+```
+
+***
+
+## 🧪 Bonus: Revalidate Specific Pages
+
+You can pass a slug or path in the webhook payload and revalidate specific pages:
+
+```
+await res.revalidate(`/blog/${slug}`)
+
+```
+
+***
+
+## 🎯 Final Thoughts
+
+On-Demand ISR lets you combine the performance of static sites with the flexibility of dynamic updates. By connecting GitHub Webhooks, you’ve automated the workflow: content updates in your repo instantly reflect on your site.
+
+Got a markdown blog or headless CMS? Pair it with this setup, and you're good to go!
+
+***
+
+## 📚 Resources
+
+* [Next.js Docs - On-Demand ISR](https://nextjs.org/docs/pages/building-your-application/data-fetching/incremental-static-regeneration#on-demand-revalidation)
+* [GitHub Docs - Webhooks](https://docs.github.com/en/webhooks)
+
+![On-Demand ISR](https://opengraph.githubassets.com/9624bd6444343e0018e834121a7513bdaeb58ca5a42cfc6cb6dbdbc76a11b49e/vercel/on-demand-isr)
