@@ -1,0 +1,157 @@
+
+---
+title: "Seamless Expo OTA Updates with GitHub Webhooks"
+date: "2025-05-18"
+author: "Your Name"
+summary: "Set up Expo's Over-the-Air (OTA) updates to automatically deploy updates whenever you push to your GitHub repository."
+slug: "expo-ota"
+imageUrl: "https://avatars.githubusercontent.com/u/12504344?s=48&v=4"
+tags:
+  - "Expo"
+  - "React Native"
+  - "CI/CD"
+  - "Github"
+---
+
+
+# ⚡ Seamless Expo OTA Updates with GitHub Webhooks
+
+One of Expo's most powerful features is **Over-the-Air (OTA) updates** — the ability to push updates to your users without waiting for app store reviews.
+
+But what if you could trigger OTA deployments _automatically_ whenever you push to GitHub?
+
+In this post, you’ll learn how to integrate **GitHub Webhooks with Expo EAS Update** to automate your OTA workflow.
+
+---
+
+## 🚀 What are OTA Updates in Expo?
+
+Expo allows you to push new versions of your app JS bundle to users without publishing to the App Store or Play Store. When users open the app, they’ll download the latest version automatically.
+
+Instead of manually running:
+
+```bash
+eas update --branch production
+````
+
+You can hook it up with GitHub to trigger this automatically.
+
+---
+
+## 🛠️ Setup: GitHub Webhook + EAS Update Trigger
+
+### 1. Enable OTA Updates with EAS
+
+Ensure you’ve configured your Expo app with EAS Update:
+
+```bash
+eas update:configure
+```
+
+> 📌 This sets up your project and links it to your Expo account.
+
+---
+
+### 2. Create a GitHub Action Workflow
+
+Inside your Expo project, add the following file:
+
+**`.github/workflows/eas-update.yml`**
+
+```yaml
+name: EAS OTA Update
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  ota-update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Authenticate with Expo
+        run: npx expo login -u ${{ secrets.EXPO_USERNAME }} -p ${{ secrets.EXPO_PASSWORD }}
+
+      - name: Publish OTA update
+        run: npx eas update --branch production
+```
+
+---
+
+### 3. Add GitHub Secrets
+
+Go to your GitHub repo → **Settings** → **Secrets and variables** → **Actions** and add:
+
+* `EXPO_USERNAME`
+* `EXPO_PASSWORD`
+
+> 🔒 Alternatively, use an [access token](https://docs.expo.dev/accounts/programmatic-access/) and `EXPO_TOKEN`.
+
+---
+
+## ✅ Testing the Setup
+
+Once configured, any push to the `main` branch will:
+
+1. Trigger the GitHub Action.
+2. Run `eas update`.
+3. Push OTA updates to all users on the `production` branch.
+
+You can also test it locally with:
+
+```bash
+eas update --branch production
+```
+
+> 🔁 Your users will get the update the next time they open the app, depending on your update policy.
+
+---
+
+## 🎯 Bonus: Use Channels and Branches
+
+Want different updates for staging and production?
+
+* Use **channels** in Expo (`staging`, `production`, etc.).
+* Define branches accordingly in GitHub.
+* Customize the workflow trigger:
+
+```yaml
+on:
+  push:
+    branches: [production]
+```
+
+And update this command:
+
+```bash
+npx eas update --branch production
+```
+
+---
+
+## 🤖 Pro Tip: Use EAS Update + Slack
+
+You can extend the workflow to notify your team in Slack after a successful deployment using [Slack GitHub Actions](https://github.com/marketplace/actions/slack-notify).
+
+---
+
+## 📚 Resources
+
+* [Expo Docs - EAS Update](https://docs.expo.dev/eas-update/introduction/)
+* [GitHub Actions Docs](https://docs.github.com/en/actions)
+* [Expo OTA Policies](https://docs.expo.dev/eas-update/rollouts/)
+
+<img src="https://opengraph.githubassets.com/2bff53a91f62c07b9bca71782c98caa969fcf17ff4c460b7fcedf2c79d7c70da/expo/eas-update" />
