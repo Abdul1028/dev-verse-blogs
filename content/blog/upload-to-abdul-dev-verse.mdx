@@ -1,0 +1,139 @@
+---
+title: "🚀 How to Upload Your Blog to Abdul Dev-Verse"
+date: "2025-05-18"
+author: "Abdul"
+summary: "A step-by-step guide on contributing your technical blogs to Abdul Dev-Verse using GitHub and MDX. Learn how to write, format, and publish seamlessly."
+slug: "upload-to-abdul-dev-verse"
+imageUrl: "https://github.com/Abdul1028/dev-verse-blogs/blob/main/content/photos/dev-verse.jpeg?raw=true"
+tags:
+  - "Dev-Verse"
+  - "MDX"
+  - "Blogging"
+  - "GitHub"
+  - "Open Source"
+---
+
+
+# ✍️ How to Upload Your Blog to Abdul Dev-Verse
+
+Do you want your technical blog to be showcased on [Abdul Dev-Verse](https://abdul-dev-verse.vercel.app/)? Good news — it’s super easy and completely open source!
+
+This guide will walk you through the **format**, **upload process**, and how it all works behind the scenes with **GitHub Webhooks + Next.js ISR**.
+
+---
+
+## 🗂 Step 1: Format Your Blog Correctly
+
+Create a new `.mdx` file and **use the following frontmatter** at the top:
+
+```md
+---
+title: "Your Blog Title Here"
+date: "YYYY-MM-DD"
+author: "Your Name"
+summary: "One-liner that summarizes your post."
+slug: "your-blog-slug"
+imageUrl: "https://your-image-url"
+tags:
+  - "TagOne"
+  - "TagTwo"
+---
+````
+
+> ✅ Make sure the `slug` is also the **file name** (e.g. `slug-name.mdx`).
+
+Here’s an example:
+
+```md
+---
+title: "How to Build a Weather App in React"
+date: "2025-05-18"
+author: "Jane Doe"
+summary: "Learn how to fetch and display real-time weather using OpenWeatherMap API and React."
+slug: "weather-app-react"
+imageUrl: "https://images.unsplash.com/photo-1557682224-5b8590cd9ec5"
+tags:
+  - "React"
+  - "API"
+  - "Frontend"
+---
+```
+
+Now write your blog content in MDX format below the frontmatter.
+
+---
+
+## 🧪 Step 2: Fork the Blog Repository
+
+1. Visit: [https://github.com/Abdul1028/dev-verse-blogs](https://github.com/Abdul1028/dev-verse-blogs)
+2. Click on **"Fork"** in the top-right corner.
+3. Clone your forked repo:
+
+```bash
+git clone https://github.com/YOUR_USERNAME/dev-verse-blogs.git
+cd dev-verse-blogs
+```
+
+---
+
+## ✍️ Step 3: Add Your Blog File
+
+1. Navigate to the `content/blog` directory:
+
+   ```bash
+   cd content/blog
+   ```
+
+2. Add your `.mdx` file with the same name as your `slug`:
+
+   ```bash
+   touch your-slug.mdx
+   ```
+
+3. Paste your blog content into it.
+
+---
+
+## 🚀 Step 4: Push and Create a Pull Request
+
+```bash
+git checkout -b add-my-blog
+git add .
+git commit -m "Added my blog post on [topic]"
+git push origin add-my-blog
+```
+
+Then go to your forked repo on GitHub and click **"Compare & pull request"** to submit your blog for review.
+
+---
+
+## ✅ Step 5: Done! It’ll Be Live Automatically
+
+Once the PR is accepted:
+
+* A GitHub webhook triggers a rebuild.
+* Next.js uses **On-Demand ISR** to fetch and render your blog.
+* Your blog will appear live on: [https://abdul-dev-verse.vercel.app/](https://abdul-dev-verse.vercel.app/)
+
+---
+
+## 🤖 Bonus Tips
+
+* Use markdown/MDX to embed code, images, and components.
+* Use royalty-free image URLs for the `imageUrl` field (Unsplash, GitHub avatar, etc.).
+* Keep your `slug` short and hyphenated.
+
+---
+
+## 💡 Resources
+
+* [Abdul Dev-Verse Live](https://abdul-dev-verse.vercel.app/)
+* [Repo: dev-verse-blogs](https://github.com/Abdul1028/dev-verse-blogs)
+* [MDX Docs](https://mdxjs.com/)
+* [Unsplash for Free Images](https://unsplash.com/)
+
+---
+
+Happy blogging! 💻✨
+
+
