@@ -1,0 +1,232 @@
+---
+title: "🚀 Deploy Next.js Serverless Functions on AWS Using OpenNext"
+date: "2025-10-19"
+author: "Abdul"
+summary: "Learn how to run your Next.js API routes and pages as AWS Lambda serverless functions using OpenNext — the open-source Vercel alternative."
+slug: "serverless-next-open-next-aws"
+imageUrl: "https://images.unsplash.com/photo-1527430253228-e93688616381"
+tags:
+  - "Next.js"
+  - "Serverless"
+  - "AWS"
+  - "OpenNext"
+---
+
+# 🚀 Deploy Next.js Serverless Functions on AWS Using OpenNext
+
+Vercel’s deployment platform is fantastic — but what if you want to **host your Next.js app on AWS**, with full control over infrastructure, cost, and scaling?
+
+That’s where **OpenNext** comes in — an open-source toolkit that takes your Next.js app and builds it into a **serverless-friendly format** that can run anywhere, including AWS Lambda, Cloudflare Workers, and Netlify.
+
+In this guide, we’ll go hands-on to deploy a Next.js app using OpenNext on **AWS Lambda**, step by step.
+
+---
+
+## 🧠 What is OpenNext?
+
+**OpenNext** is an open-source project that replicates how Vercel runs Next.js in serverless environments.
+
+It:
+- Converts your `.next` build output into AWS Lambda–compatible functions
+- Packages static assets for S3 + CloudFront
+- Handles ISR (Incremental Static Regeneration)
+- Generates an `open-next.config.mjs` for fine control
+
+👉 Think of it as *Vercel’s build pipeline, open-sourced*.
+
+---
+
+## 🗂 Step 1: Setup Your Next.js App
+
+Create a new Next.js app (if you don’t already have one):
+
+```bash
+npx create-next-app@latest my-serverless-app
+cd my-serverless-app
+```
+
+Let’s add a simple **API route** that we’ll deploy as a serverless function:
+
+```ts
+// app/api/hello/route.ts
+export async function GET() {
+  return Response.json({ message: "Hello from Serverless Lambda 👋" });
+}
+```
+
+Test it locally:
+
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000/api/hello](http://localhost:3000/api/hello) — you should see your JSON response.
+
+---
+
+## 🧩 Step 2: Install and Configure OpenNext
+
+Install OpenNext as a dev dependency:
+
+```bash
+npm install -D open-next
+```
+
+Then create a config file:
+
+```bash
+touch open-next.config.mjs
+```
+
+Add this content:
+
+```js
+export default {
+  default: {
+    mode: "serverless",
+  },
+};
+```
+
+Now build using OpenNext:
+
+```bash
+npx open-next build
+```
+
+This will generate a `.open-next/` folder with:
+- Lambda-ready function bundles (`server-function/`)
+- Static files for S3
+- Configuration metadata
+
+---
+
+## ☁️ Step 3: Deploy to AWS Lambda (Using AWS SAM)
+
+Install the **AWS SAM CLI** (Serverless Application Model):
+
+```bash
+brew install aws-sam-cli
+```
+
+Then initialize your deployment setup:
+
+```bash
+sam init --name nextjs-open-next --runtime nodejs20.x --app-template hello-world
+```
+
+Replace the SAM project’s `template.yaml` with:
+
+```yaml
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Deploy Next.js app built with OpenNext
+
+Resources:
+  NextServerFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: NextServer
+      Handler: index.handler
+      Runtime: nodejs20.x
+      CodeUri: .open-next/server-function
+      MemorySize: 512
+      Timeout: 10
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: ANY
+```
+
+---
+
+## 🚀 Step 4: Deploy the Stack
+
+Run:
+
+```bash
+sam build
+sam deploy --guided
+```
+
+You’ll be asked for:
+- Stack name (e.g. `next-open-next`)
+- AWS region
+- Confirmation prompts
+
+After deployment, AWS SAM will output an **API Gateway URL**.  
+Visit that URL → your app and API routes are now live! 🎉
+
+---
+
+## 🧠 Step 5: How It Works Internally
+
+OpenNext:
+- Converts each Next.js route and API into separate AWS Lambda functions.
+- Sends static assets to S3.
+- Uses CloudFront for caching and ISR invalidation.
+- Handles `/_next/data/` and `/_next/image` paths like Vercel.
+
+So you get the same performance and behavior as Vercel — just fully on AWS.
+
+---
+
+## 🛠 Troubleshooting Tips
+
+- **Cold Starts:** Use AWS Lambda Provisioned Concurrency if latency matters.
+- **ISR Pages Not Updating?** Check your CloudFront invalidation setup.
+- **Memory Errors:** Increase Lambda memory (512MB–1GB is typical).
+
+---
+
+## ✅ Step 6: Automate Future Deployments
+
+You can use **GitHub Actions** to automate builds and deployments:
+
+```yaml
+# .github/workflows/deploy.yml
+name: Deploy Next.js to AWS Lambda
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: npm ci
+      - run: npx open-next build
+      - run: sam deploy --no-confirm-changeset --stack-name next-open-next --region us-east-1
+```
+
+---
+
+## 🎯 Final Thoughts
+
+Using **OpenNext** gives you:
+- Full control of your infra (AWS instead of Vercel)
+- Lower cost scaling for high-traffic sites
+- Better transparency for debugging and tuning
+
+It’s perfect if you want to keep Next.js’s developer experience but host in your own cloud.
+
+---
+
+## 🔗 Resources
+
+- [OpenNext GitHub Repo](https://github.com/opennextjs/opennext)
+- [AWS SAM Docs](https://docs.aws.amazon.com/serverless-application-model)
+- [Next.js Serverless Functions](https://nextjs.org/docs/app/building-your-application/routing/route-handlers)
+- [Deploy Example by SST](https://docs.sst.dev/start/nextjs)
+
+---
+
+💡 **Pro Tip:**  
+You can also use [SST (Serverless Stack)](https://sst.dev/) — it integrates with OpenNext and automates your AWS deployment even more smoothly.
+
+---
+
+✨ **Now your Next.js app runs fully on AWS Lambda — serverless, scalable, and open-source powered.**
